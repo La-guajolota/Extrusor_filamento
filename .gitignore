@@ -1,0 +1,5 @@
+# Ignorar la carpeta de compras
+Presupuestos_materiales/compras
+
+# Archivos de VS Code
+.vscode/
