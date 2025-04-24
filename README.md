@@ -11,39 +11,89 @@ Este proyecto surge de la necesidad de **reciclar y reutilizar** plástico (PLA,
 
 1. [Descripción General](#descripción-general)
 2. [Características Principales](#características-principales)
-3. [Estructura del Repositorio](#estructura-del-repositorio)
-4. [Requisitos y Dependencias](#requisitos-y-dependencias)
-5. [Instalación y Uso](#instalación-y-uso)
-6. [Colaboradores](#colaboradores)
-7. [Licencia](#licencia)
+3. [Flujo de Trabajo](#flujo-de-trabajo)
+4. [Retos Técnicos](#retos-técnicos)
+5. [Estructura del Repositorio](#estructura-del-repositorio)
+6. [Requisitos y Dependencias](#requisitos-y-dependencias)
+7. [Instalación y Uso](#instalación-y-uso)
+8. [Colaboradores](#colaboradores)
+9. [Licencia](#licencia)
 
 ---
 
 ## Descripción General
 
-Con esta **Extrusora de Filamento** podrás:
+La **Extrusora de Filamento** procesa:
 
-- **Reciclar** piezas fallidas, soportes y purgas de PLA, ABS, PETG, etc.
-- **Fundir** el plástico de forma controlada mediante termopares tipo K y controladores MAX6675.
-- **Extruir** filamento de 1.75 mm con diámetro uniforme.
-- **Enbobinar** automáticamente el filamento con sincronización de dos motores NEMA.
+- **Reciclaje** de piezas fallidas y sobrantes de PLA, ABS, PETG…
+- **Triturado** y filtrado de partículas a tamaño óptimo.
+- **Fusión** controlada con termopares K y MAX6675.
+- **Extrusión** de filamento de 1.75 mm con control de diámetro en tiempo real.
+- **Enbobinado** sincronizado con motores NEMA para tensión constante.
 
-El objetivo es ofrecer un diseño **abierto y reproducible**, que cualquiera pueda ensamblar, usar y mejorar.
+Diseño modular y open-source para que cualquier persona pueda reproducirlo y mejorarlo.
 
 ---
 
 ## ✨ Características Principales
 
-1. **Arquitectura modular**
-   - Mecánica, electrónica y firmware separados para facilitar mantenimiento y evolución.
-2. **Control de temperatura**
-   - Tres termopares tipo K controlados por MAX6675 y resistencias de abrazadera en el cilindro.
-3. **Sincronización de motores**
-   - Un NEMA acciona el tornillo de extrusión y otro gestiona el carrete para un filamento constante.
-4. **Interfaz intuitiva**
-   - Pantalla LCD y encoder rotativo con menú para ajustar temperatura, velocidad y tiempos.
-5. **Documentación completa**
-   - Planos CAD, esquemas eléctricos, lista de materiales y guía paso a paso para montaje y calibración.
+- **Modularidad**: subsistemas mecánico, electrónico y firmware independientes.
+- **Control térmico**: 3 termopares + resistencias de abrazadera.
+- **Motores sincronizados**: extrusión vs. bobinado para diámetro estable.
+- **Interfaz de usuario**: LCD + encoder rotativo con menú configurables.
+- **Documentación completa**: CAD, esquemas, lista de materiales y guía paso a paso.
+
+## 🔄 Flujo de Trabajo: Recicladora de Filamento
+
+1. **Recolección y clasificación**
+
+   1. Separar por tipo de plástico (PLA, ABS, PETG, etc.)
+   2. Retirar impurezas (adhesivos, polvo, material extraño)
+
+2. **Triturado del material**
+
+   1. Introducir las piezas en el sistema de trituración
+   2. Filtrar partículas demasiado grandes antes de la extrusión
+
+3. **Fusión y extrusión**
+
+   1. Alimentar las partículas al extrusor
+   2. Aplicar temperatura y presión para fundir el material
+   3. Extruir el filamento con control de diámetro en tiempo real
+
+4. **Enfriamiento y estabilización**
+
+   1. Pasar el filamento por un baño de enfriamiento o ventiladores
+   2. Mantener una tensión constante para evitar deformaciones
+
+5. **Embobinado y almacenamiento**
+   1. Medir el diámetro final antes de embobinar
+   2. Enrollar en un carrete con tensión controlada
+   3. Etiquetar y almacenar el filamento reciclado
+
+---
+
+## 🎯 Retos Técnicos
+
+1. **Triturado de material hasta tamaño ideal**
+
+   1. Trituradora suficientemente potente
+   2. Cada material cuenta con propiedades mecánicas diferentes
+   3. Filtrado de virutas de tamaño apropiado
+
+2. **Extrusión de filamento**
+
+   1. Temperatura adecuada para cada material (diferentes puntos de fusión)
+   2. Presión en el extrusor consistente para garantizar uniformidad diametral
+   3. Velocidad de extrusión estable para mantener la calidad del filamento
+
+3. **Enfriamiento**
+
+   1. Un enfriamiento inadecuado hará el material frágil
+
+4. **Embobinado**
+   1. Sin un sistema de guiado, el filamento puede enredarse
+   2. Control de diámetro para detectar irregularidades durante el bobinado
 
 ---
 
@@ -60,7 +110,7 @@ El objetivo es ofrecer un diseño **abierto y reproducible**, que cualquiera pue
 └── README.md                  # Documentación principal
 ```
 
-## Colaboradores
+## 🤝 Colaboradores
 
 Este proyecto fue desarrollado por:
 
