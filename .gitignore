@@ -1,0 +1,10 @@
+# Ignorar la carpeta de compras
+Presentaciones_avances_semanales
+Presupuestos_materiales/compras
+
+# Archivos de VS Code
+.vscode/
+
+# Ignorar directorios __pycache__ y archivos compilados .pyc
+__pycache__/
+*.pyc
