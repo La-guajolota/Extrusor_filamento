@@ -3,7 +3,7 @@
 # :gear: Extrusora de Filamento para Impresión 3D
 
 ¡Bienvenido/a al repositorio de nuestra **Extrusora de Filamento**!  
-Este proyecto surge de la necesidad de **reciclar y reutilizar** plástico (PLA, ABS, PETG, etc.) para convertirlo en filamento nuevo, fomentando la economía circular y la sostenibilidad en el ámbito de la impresión 3D.
+Este proyecto surge de la necesidad de **reciclar y reutilizar** plástico (PLA, ABS, PETG, etc.) para convertirlo en filamento nuevo, fomentando la sostenibilidad en el ámbito de la impresión 3D.
 
 ---
 
@@ -21,13 +21,13 @@ Este proyecto surge de la necesidad de **reciclar y reutilizar** plástico (PLA,
 
 ## Descripción General
 
-Este proyecto se desarrolla con el fin de **fabricar un prototipo de extrusora** capaz de:
+Este proyecto se desarrolla con el fin de **fabricar un prototipo funcional de extrusora** capaz de:
 
 - Triturar y procesar desperdicios plásticos (piezas fallidas, soportes, purgas, etc.)
 - Fundir y extruir el plástico a una temperatura adecuada.
-- Enfriar y embobinar el filamento resultante (1.75 mm o el diámetro requerido).
+- Enfriar y embobinar el filamento resultante (1.75 mm).
 
-La meta es que cualquiera con acceso a este proyecto pueda **reproducir y mejorar** la máquina, impulsando el reciclaje de material y reduciendo la huella ambiental en la fabricación aditiva.
+La meta es que cualquiera con acceso a este proyecto pueda **reproducir y mejorar** la máquina.
 
 ---
 
@@ -35,7 +35,8 @@ La meta es que cualquiera con acceso a este proyecto pueda **reproducir y mejora
 
 - **Diseño Modular**: Separación de la parte mecánica, electrónica y de firmware para facilitar su mantenimiento y actualización.
 - **Reutilización de Materiales**: Permite reciclar plástico procedente de piezas impresas fallidas o excedentes de producción.
-- **Control de Temperatura**: Incluye sensores y controles de firmware para regular la temperatura de fusión.
+- **Control de Temperatura**: Esto se logra por termopares tipo K y módulos max6675 repartidos en 3 puntos del cilidro de la extrusora. Con elementos calefactores tipo abrazadera.
+- **Control de velocidad**:
 - **Facilidad de Montaje**: Documentación detallada para que el ensamblado y la calibración sean sencillos.
 
 ---
