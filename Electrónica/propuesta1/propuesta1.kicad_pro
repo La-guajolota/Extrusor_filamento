@@ -2,7 +2,6 @@
   "board": {
     "3dviewports": [],
     "design_settings": {
-<<<<<<< HEAD
       "defaults": {
         "apply_defaults_to_fp_fields": false,
         "apply_defaults_to_fp_shapes": false,
@@ -209,14 +208,6 @@
       },
       "via_dimensions": [],
       "zones_allow_external_fillets": false
-=======
-      "defaults": {},
-      "diff_pair_dimensions": [],
-      "drc_exclusions": [],
-      "rules": {},
-      "track_widths": [],
-      "via_dimensions": []
->>>>>>> main
     },
     "ipc2581": {
       "dist": "",
