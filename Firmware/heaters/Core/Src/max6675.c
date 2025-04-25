@@ -1,6 +1,6 @@
 /**
  * @file      max6675.c
- * @author    Adrian Silva Palafox
+ * @author    Adrián Silva Palafox
  * @brief     MAX6675 Thermocouple SPI Interface Driver Implementation
  * @version   1.1
  * @date      April 5, 2024

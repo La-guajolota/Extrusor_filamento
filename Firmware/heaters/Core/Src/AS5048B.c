@@ -217,4 +217,4 @@
 //
 //    return sensor->registers.diagnostics;
 //}
-
+//

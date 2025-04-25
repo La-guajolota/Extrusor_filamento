@@ -1,0 +1,141 @@
+/*
+ * reflow_oven_process.c
+ *
+ *  Created on: Apr 22, 2025
+ *      Author: adrian
+ */
+
+/******************************************************************************
+ * INCLUDES
+ * *****************************************************************************/
+#include "reflow_oven_process.h"
+
+// SYSTEM DEFINTIONS
+ReflowOven_t ReflowOven;
+
+/******************************************************************************
+ * FUNCTION DEFINITIONS
+ * *****************************************************************************/
+void ReflowOven_Init(void)
+{
+    /**
+     * Configuration parameters for the reflow oven process:
+     *
+     * - Pre_HeatUpRate: The rate at which the oven temperature increases during the pre-heating phase, measured in degrees Celsius per second.
+     * - SoakTempeture: The target temperature for the soak phase, where the temperature is held constant to allow uniform heating, measured in degrees Celsius.
+     * - SoakTime: The duration of the soak phase, measured in seconds.
+     * - HeatUpRate: The rate at which the oven temperature increases during the ramp-up phase to the reflow temperature, measured in degrees Celsius per second.
+     * - ReflowTempeture: The peak temperature reached during the reflow phase, where soldering occurs, measured in degrees Celsius.
+     * - ReflowTime: The duration of the reflow phase, measured in seconds.
+     * - CoolDownRate: The rate at which the oven temperature decreases during the cooling phase, measured in degrees Celsius per second.
+     * - CoolDownTempeture: The target temperature for the cooling phase, typically room temperature, measured in degrees Celsius.
+     */
+    // Initialize the reflow oven parameters
+    ReflowOven.ReflowParameters.Pre_HeatUpRate = 0.5f;
+    ReflowOven.ReflowParameters.SoakTempeture = 150.0f;
+    ReflowOven.ReflowParameters.SoakTime = 60.0f;
+    ReflowOven.ReflowParameters.HeatUpRate = 1.0f;
+    ReflowOven.ReflowParameters.ReflowTempeture = 220.0f;
+    ReflowOven.ReflowParameters.ReflowTime = 30.0f;
+    ReflowOven.ReflowParameters.CoolDownRate = 1.0f;
+    ReflowOven.ReflowParameters.CoolDownTempeture = 25.0f;
+
+    // Set the initial phase to idle
+    ReflowOven.currentPhase = REFLOW_IDLE;
+    ReflowOven.NextPhase = REFLOW_IDLE;
+}
+
+void ReflowOven_modifyParameters(ReflowParameters_enum parameterUpdate, float newParamerterValue)
+{
+
+    switch (parameterUpdate)
+    {
+    case PARAM_Pre_HeatUpRate:
+        ReflowOven.ReflowParameters.Pre_HeatUpRate = newParamerterValue;
+        break;
+    case PARAM_SoakTempeture:
+        ReflowOven.ReflowParameters.SoakTempeture = newParamerterValue;
+        break;
+    case PARAM_SoakTime:
+        ReflowOven.ReflowParameters.SoakTime = newParamerterValue;
+        break;
+    case PARAM_HeatUpRate:
+        ReflowOven.ReflowParameters.HeatUpRate = newParamerterValue;
+        break;
+    case PARAM_ReflowTempeture:
+        ReflowOven.ReflowParameters.ReflowTempeture = newParamerterValue;
+        break;
+    case PARAM_ReflowTime:
+        ReflowOven.ReflowParameters.ReflowTime = newParamerterValue;
+        break;
+    case PARAM_CoolDownRate:
+        ReflowOven.ReflowParameters.CoolDownRate = newParamerterValue;
+        break;
+    case PARAM_CoolDownTempeture:
+        ReflowOven.ReflowParameters.CoolDownTempeture = newParamerterValue;
+        break;
+    // Add more cases for other parameters as needed
+    // Handle invalid parameter updates
+    default:
+        // Handle invalid parameter updates
+        // You can log an error or take appropriate action
+        break;
+    }
+}
+
+void ReflowOven_operate(PIDController *PID, float currentTemperature)
+{
+    switch (ReflowOven.currentPhase)
+    {
+    case REFLOW_PREHEAT:
+        // DO PREHEAT
+        PID_Update(PID, ReflowOven.ReflowParameters.Pre_HeatUpRate, currentTemperature);
+        // Check if the preheat phase is complete
+        if (currentTemperature >= ReflowOven.ReflowParameters.SoakTempeture)
+        {
+            ReflowOven.NextPhase = REFLOW_SOAK;
+        }
+        break;
+    case REFLOW_SOAK:
+        // DO SOAK
+        PID_Update(PID, ReflowOven.ReflowParameters.SoakTime, currentTemperature);
+        if (1)
+        {
+            ReflowOven.NextPhase = REFLOW_HEATUP;
+        }
+        break;
+    case REFLOW_HEATUP:
+        // DO HEATUP
+        PID_Update(PID, ReflowOven.ReflowParameters.HeatUpRate, currentTemperature);
+        // Check if the heat-up phase is complete
+        if (currentTemperature >= ReflowOven.ReflowParameters.ReflowTempeture)
+        {
+            ReflowOven.NextPhase = REFLOW_REFLOW;
+        }
+        ReflowOven.NextPhase = REFLOW_REFLOW;
+        break;
+    case REFLOW_REFLOW:
+        // DO REFLOW
+        PID_Update(PID, ReflowOven.ReflowParameters.ReflowTime, currentTemperature);
+        // Check if the reflow phase is complete
+        if (1)
+        {
+            ReflowOven.NextPhase = REFLOW_COOLDOWN;
+        }
+        break;
+    case REFLOW_COOLDOWN:
+        // DO COOLDOWN
+        ReflowOven.NextPhase = REFLOW_IDLE;
+        // Check if the cooldown phase is complete
+        if (currentTemperature <= ReflowOven.ReflowParameters.CoolDownTempeture)
+        {
+            ReflowOven.NextPhase = REFLOW_IDLE;
+        }
+        break;
+    case REFLOW_IDLE:
+        // DO IDLE
+        break;
+    default:
+        break;
+    }
+}
