@@ -60,8 +60,8 @@ all: main-build
 main-build: heaters.elf secondary-outputs
 
 # Tool invocations
-heaters.elf heaters.map: $(OBJS) $(USER_OBJS) /media/adrian/usb_a/Chambas/Inbiodroid/Estrusora_filamento_3d/Firmware/heaters/STM32F411CEUX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "heaters.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/media/adrian/usb_a/Chambas/Inbiodroid/Estrusora_filamento_3d/Firmware/heaters/STM32F411CEUX_FLASH.ld" --specs=nosys.specs -Wl,-Map="heaters.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+heaters.elf heaters.map: $(OBJS) $(USER_OBJS) /media/adrian/usb_a/Chambas/Inbiodroid/Extrusor_filamento/Firmware/heaters/STM32F411CEUX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "heaters.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/media/adrian/usb_a/Chambas/Inbiodroid/Extrusor_filamento/Firmware/heaters/STM32F411CEUX_FLASH.ld" --specs=nosys.specs -Wl,-Map="heaters.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

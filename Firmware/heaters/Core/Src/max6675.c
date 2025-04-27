@@ -112,6 +112,9 @@ HAL_StatusTypeDef MAX6675_ReadTemperature(MAX6675_Driver_t *driver, uint8_t devi
         GPIO_PIN_SET
     ); /* Deassert CS */
 
+    // NEEDED TO MAKE SURE CLOCK SETS HIGH-IDLE AND SLAVE MISO GOES HI-Z
+    for (int i = 0; i < 25; i++) __NOP();
+
     /* Check if SPI communication was successful */
     if (status != HAL_OK) {
         driver->devices[device_id].is_connected = 0;

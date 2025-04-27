@@ -9,12 +9,17 @@
  */
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f4xx.h"  /* STM32F4 HAL library for SPI communication */
+#include "stm32f4xx.h"  /* STM32F4 HAL library for I2C communication */
 #include "main.h"       /* For Chip Select pin and port definitions */
 #include "stdint.h"
 
-/* I2C Device Address */
-#define AS5048B_PHYSICAL_ADDR    0x40    // Default I2C address of the device
+/*********************
+ * External variables
+ *********************/
+extern I2C_HandleTypeDef hi2c1;
+
+/* I2C Device Addresses */
+#define AS5048B_I2C_ADDRESS0 0x40 // Default I2C address of the device
 
 /* Register Addresses */
 #define REG_PROG_CTRL            0x03    // Programming Control register

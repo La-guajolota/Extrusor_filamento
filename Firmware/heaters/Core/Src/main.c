@@ -43,6 +43,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+I2C_HandleTypeDef hi2c1;
+
 SPI_HandleTypeDef hspi1;
 
 TIM_HandleTypeDef htim1;
@@ -60,6 +62,7 @@ uint8_t timers_isr = 0x00;
 float tempReadings[3] = {0};  // Stores each sensor's temperature
 float pipeSetpoints[3] = {0};
 MAX6675_Driver_t tempSensors;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -69,6 +72,7 @@ static void MX_SPI1_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -111,6 +115,7 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM1_Init();
   MX_TIM2_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 
   PID_Init(&PID0,
@@ -165,13 +170,13 @@ int main(void)
 		timers_isr &= ~0x01;
 
 		// Sample temperatures
-		for (uint8_t sensor = 0; sensor < 3; sensor++) {
+		for (uint8_t sensor = 0; sensor < 4; sensor++) {
 			// Individual max6675 sensor's reading
 			MAX6675_ReadTemperature(&tempSensors, sensor);
-			HAL_Delay(1); // HAL_Delay(250); // Waits for Chip Ready(according to Datasheet, the max time for conversion is 220ms)
+			//HAL_Delay(1); // HAL_Delay(250); // Waits for Chip Ready(according to Datasheet, the max time for conversion is 220ms)
 		}
 		// Take each measurements and compute chamber's temperature
-		for (uint8_t sensor = 0; sensor < 3; sensor++) {
+		for (uint8_t sensor = 0; sensor < 4; sensor++) {
 			MAX6675_GetTemperature(&tempSensors, sensor, tempReadings + sensor);
 		}
 		// Update PIDs
@@ -235,6 +240,40 @@ void SystemClock_Config(void)
 }
 
 /**
+  * @brief I2C1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C1_Init(void)
+{
+
+  /* USER CODE BEGIN I2C1_Init 0 */
+
+  /* USER CODE END I2C1_Init 0 */
+
+  /* USER CODE BEGIN I2C1_Init 1 */
+
+  /* USER CODE END I2C1_Init 1 */
+  hi2c1.Instance = I2C1;
+  hi2c1.Init.ClockSpeed = 300000;
+  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c1.Init.OwnAddress1 = 128;
+  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c1.Init.OwnAddress2 = 0;
+  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_ENABLE;
+  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C1_Init 2 */
+
+  /* USER CODE END I2C1_Init 2 */
+
+}
+
+/**
   * @brief SPI1 Initialization Function
   * @param None
   * @retval None
@@ -253,7 +292,7 @@ static void MX_SPI1_Init(void)
   hspi1.Instance = SPI1;
   hspi1.Init.Mode = SPI_MODE_MASTER;
   hspi1.Init.Direction = SPI_DIRECTION_2LINES_RXONLY;
-  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi1.Init.DataSize = SPI_DATASIZE_16BIT;
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
@@ -369,7 +408,7 @@ static void MX_TIM2_Init(void)
   {
     Error_Handler();
   }
-  sConfigOC.OCMode = TIM_OCMODE_TOGGLE;
+  sConfigOC.OCMode = TIM_OCMODE_TIMING;
   sConfigOC.Pulse = 100;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
@@ -451,10 +490,10 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(built_in_led_GPIO_Port, built_in_led_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(CS_0_GPIO_Port, CS_0_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(CS_0_GPIO_Port, CS_0_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, CS_1_Pin|CS_2_Pin|CS_3_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, CS_1_Pin|CS_2_Pin|CS_3_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin : built_in_led_Pin */
   GPIO_InitStruct.Pin = built_in_led_Pin;
@@ -466,14 +505,14 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin : CS_0_Pin */
   GPIO_InitStruct.Pin = CS_0_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(CS_0_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : CS_1_Pin CS_2_Pin CS_3_Pin */
   GPIO_InitStruct.Pin = CS_1_Pin|CS_2_Pin|CS_3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 

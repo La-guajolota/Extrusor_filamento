@@ -1,5 +1,5 @@
 ../Core/Src/max6675.c:21:19:MAX6675_Init	4
 ../Core/Src/max6675.c:55:19:MAX6675_AddDevice	4
-../Core/Src/max6675.c:87:19:MAX6675_ReadTemperature	6
-../Core/Src/max6675.c:158:19:MAX6675_GetTemperature	5
-../Core/Src/max6675.c:183:9:MAX6675_IsConnected	3
+../Core/Src/max6675.c:87:19:MAX6675_ReadTemperature	7
+../Core/Src/max6675.c:161:19:MAX6675_GetTemperature	5
+../Core/Src/max6675.c:186:9:MAX6675_IsConnected	3
