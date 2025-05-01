@@ -1,0 +1,11 @@
+../Core/Src/AS5048B.c:11:26:user_i2c_read	2
+../Core/Src/AS5048B.c:25:26:user_i2c_write	2
+../Core/Src/AS5048B.c:40:19:AS5048B_Init	3
+../Core/Src/AS5048B.c:49:19:AS5048B_AddDevice	4
+../Core/Src/AS5048B.c:61:6:find_dev_id_address	4
+../Core/Src/AS5048B.c:71:19:AS5048B_UpdateRegisters	1
+../Core/Src/AS5048B.c:93:19:AS5048B_SetZeroPosition	1
+../Core/Src/AS5048B.c:108:7:AS5048B_GetAngleDegrees	2
+../Core/Src/AS5048B.c:125:7:AS5048B_GetAngleRadians	1
+../Core/Src/AS5048B.c:131:10:AS5048B_GetMagnitude	1
+../Core/Src/AS5048B.c:139:9:AS5048B_CheckDiagnostics	1
