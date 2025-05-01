@@ -108,8 +108,8 @@ void find_dev_id_address(AS5048B_Driver_t *driver);
  * @param num_encoder  Index in driver->devices[]
  * @return 0 on success
  */
-int AS5048B_SetZeroPosition(AS5048B_Driver_t *driver,
-                            uint8_t num_encoder);
+HAL_StatusTypeDef AS5048B_SetZeroPosition(AS5048B_Driver_t *driver,
+                            			  uint8_t num_encoder);
 
 /**
  * @brief Update register cache for given encoder
@@ -117,8 +117,8 @@ int AS5048B_SetZeroPosition(AS5048B_Driver_t *driver,
  * @param num_encoder  Index in driver->devices[]
  * @return 0 on success
  */
-int AS5048B_UpdateRegisters(AS5048B_Driver_t *driver,
-                            uint8_t num_encoder);
+HAL_StatusTypeDef AS5048B_UpdateRegisters(AS5048B_Driver_t *driver,
+									      uint8_t num_encoder);
 
 /**
  * @brief Get angle in degrees for given encoder

@@ -14,7 +14,7 @@ static HAL_StatusTypeDef user_i2c_read(AS5048B_Driver_t *drv,
                                       uint8_t *reg_data,
                                       uint16_t len)
 {
-    uint16_t addr = dev_id << 1;
+    uint16_t addr = dev_id;
     HAL_StatusTypeDef rslt;
 
     rslt = HAL_I2C_Master_Transmit(drv->hi2c, addr, &reg_addr, 1, HAL_MAX_DELAY);
@@ -28,7 +28,7 @@ static HAL_StatusTypeDef user_i2c_write(AS5048B_Driver_t *drv,
                                        uint8_t *reg_data,
                                        uint16_t len)
 {
-    uint16_t addr = dev_id << 1;
+    uint16_t addr = dev_id;
     HAL_StatusTypeDef rslt;
 
     rslt = HAL_I2C_Master_Transmit(drv->hi2c, addr, &reg_addr, 1, HAL_MAX_DELAY);
@@ -53,8 +53,10 @@ HAL_StatusTypeDef AS5048B_AddDevice(AS5048B_Driver_t *driver,
     if (!driver || num_encoder >= AS5048B_MAX_DEVICES) return HAL_ERROR;
     if (driver->device_count >= AS5048B_MAX_DEVICES) return HAL_ERROR;
 
-    driver->devices[num_encoder].dev_id = dev_id;
+    driver->devices[num_encoder].dev_id = dev_id << 1; // Use 8-bit address
     driver->device_count++;
+
+    // Verify if there's connection to device
     return HAL_I2C_IsDeviceReady(driver->hi2c, dev_id << 1, 1, HAL_MAX_DELAY);
 }
 
@@ -68,44 +70,58 @@ void find_dev_id_address(AS5048B_Driver_t *driver)
     }
 }
 
-int AS5048B_UpdateRegisters(AS5048B_Driver_t *driver,
-                            uint8_t num_encoder)
+HAL_StatusTypeDef AS5048B_UpdateRegisters(AS5048B_Driver_t *driver,
+										  uint8_t num_encoder)
 {
     AS5048B_Sensor *sens = &driver->devices[num_encoder];
-    uint8_t buf[10];
+    uint8_t buf[8];
     HAL_StatusTypeDef st = HAL_OK;
 
     st |= user_i2c_read(driver, sens->dev_id, REG_PROG_CTRL, buf, 1);
-    st |= user_i2c_read(driver, sens->dev_id, REG_I2C_ADDR, buf + 1, 2);
-    st |= user_i2c_read(driver, sens->dev_id, REG_AGC, buf + 4, 5);
+    st |= user_i2c_read(driver, sens->dev_id, REG_I2C_ADDR, buf + 1, 3); // read from REG_I2C_ADDR to REG_ZERO_POS_LOW
+    st |= user_i2c_read(driver, sens->dev_id, REG_AGC, buf + 4, 4); // read from REG_AGC to REG_MAGNITUDE_LOW
 
-    sens->registers.prog_ctrl            = buf[0];
-    sens->registers.i2c_slave_addr       = buf[1];
-    sens->registers.zero_pos_high        = buf[2];
-    sens->registers.zero_pos_low         = buf[3];
+    sens->registers.prog_ctrl              = buf[0];
+    sens->registers.i2c_slave_addr         = buf[1];
+    sens->registers.zero_pos_high          = buf[2];
+    sens->registers.zero_pos_low           = buf[3];
     sens->registers.automatic_gain_control = buf[4];
-    sens->registers.diagnostics          = buf[5];
-    sens->registers.magnitude_high       = buf[6];
-    sens->registers.magnitude_low        = buf[7];
-    sens->registers.angle_high           = buf[8];
-    sens->registers.angle_low            = buf[9] >> 2;
-
-    return (int)st;
+    sens->registers.diagnostics            = buf[5];
+    sens->registers.magnitude_high         = buf[6];
+    sens->registers.magnitude_low          = buf[7];
+    return st;
 }
 
-int AS5048B_SetZeroPosition(AS5048B_Driver_t *driver,
-                            uint8_t num_encoder)
+HAL_StatusTypeDef AS5048B_SetZeroPosition(AS5048B_Driver_t *driver,
+                                          uint8_t num_encoder)
 {
     AS5048B_Sensor *sens = &driver->devices[num_encoder];
     uint8_t data[2] = {0,0};
     HAL_StatusTypeDef st;
 
+    /*
+     * Programming Sequence with Verification: To program the zero position is needed to perform following sequence:
+	 * 1. Write 0 into OTP zero position register to clear
+	 * 2. Read angle information
+	 * 3. Write previous read angle position into OTP zero position register
+	 * Now the zero position is set.
+	 * !!!!!! If you want to burn it to the OTP register send: !!!!!
+	 * 4. Set the Programming Enable bit in the OTP control register
+	 * 5. Set the Burn bit to start the automatic programming procedure
+	 * 6. Read angle information (equals to 0)
+     * 7. Set the Verify bit to load the OTP data again into the internal registers
+	 * 8. Read angle information (equals to 0)
+     */
+    // 1.-
     st = user_i2c_write(driver, sens->dev_id, REG_ZERO_POS_HIGH, data, 1);
-    AS5048B_UpdateRegisters(driver, num_encoder);
+    // 2.-
+    AS5048B_GetAngleDegrees(driver, sens->dev_id);
     data[0] = sens->registers.angle_high;
     data[1] = sens->registers.angle_low;
-    st |= user_i2c_write(driver, sens->dev_id, REG_ZERO_POS_HIGH, data, 2);
-    return (int)st;
+    // 3-
+    st = user_i2c_write(driver, sens->dev_id, REG_ZERO_POS_HIGH, data, 2);
+
+    return st;
 }
 
 float AS5048B_GetAngleDegrees(AS5048B_Driver_t *driver,
@@ -113,10 +129,15 @@ float AS5048B_GetAngleDegrees(AS5048B_Driver_t *driver,
 {
     AS5048B_Sensor *sens = &driver->devices[num_encoder];
     uint8_t data[2];
-    if (user_i2c_read(driver, sens->dev_id, REG_ANGLE_HIGH, data, 2) != HAL_OK)
-        return -1.0f;
 
-    uint16_t raw = ((uint16_t)data[0] << 6) | (data[1] >> 2);
+    if (user_i2c_read(driver, sens->dev_id, REG_ANGLE_HIGH, data, 2) != HAL_OK) return -1.0f; //error
+
+    /* Store raw */
+    sens->registers.angle_high = data[0];
+    sens->registers.angle_low = data[1];
+
+    /* Compute it to degrees*/
+    uint16_t raw = ((uint16_t)data[1] << 6) | (data[0] >> 2);
     return raw * 360.0f / 16384.0f;
 }
 

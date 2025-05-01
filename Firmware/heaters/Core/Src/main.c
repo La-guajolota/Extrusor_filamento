@@ -165,7 +165,7 @@ int main(void)
 	AS5048B_AddDevice(&encoderSensors, 0, 0X40);
 	AS5048B_AddDevice(&encoderSensors, 1, 0X41);
 	//find_dev_id_address(&encoderSensors);
-	AS5048B_CheckDiagnostics(&encoderSensors, 0);
+	//AS5048B_CheckDiagnostics(&encoderSensors, 0);
 
   /* USER CODE END 2 */
 
@@ -184,7 +184,6 @@ int main(void)
 		for (uint8_t sensor = 0; sensor < 3; sensor++) {
 			// Individual max6675 sensor's reading
 			MAX6675_ReadTemperature(&tempSensors, sensor);
-			//HAL_Delay(1); // HAL_Delay(250); // Waits for Chip Ready(according to Datasheet, the max time for conversion is 220ms)
 		}
 		// Take each measurements and compute chamber's temperature
 		for (uint8_t sensor = 0; sensor < 3; sensor++) {
@@ -200,9 +199,8 @@ int main(void)
 
 	// MOTORS
 	angleReadings[0] = AS5048B_GetAngleDegrees(&encoderSensors, 0);
-	// angleReadings[1] = AS5048B_GetAngleDegrees(&encoderSensors, 1);
+	AS5048B_UpdateRegisters(&encoderSensors, 0);
 
-  }
   /* USER CODE END 3 */
 }
 
