@@ -63,6 +63,9 @@ float tempReadings[3] = {0};  // Stores each sensor's temperature
 float pipeSetpoints[3] = {0};
 MAX6675_Driver_t tempSensors;
 
+float angleReadings[2] = {0};
+AS5048B_Driver_t encoderSensors;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -148,6 +151,7 @@ int main(void)
 		  0, 	//limMinInt
 		  0, 	//limMaxInt
   	  0.250);	// tsample
+
   	// Themocuples initialization
 	MAX6675_Init(&tempSensors, &hspi1);
 	MAX6675_AddDevice(&tempSensors, 0);
@@ -155,6 +159,13 @@ int main(void)
 	MAX6675_AddDevice(&tempSensors, 2);
 	MAX6675_AddDevice(&tempSensors, 3);
 	HAL_TIM_Base_Start_IT(&htim3);
+
+	// Magnetic encoders initialization
+	AS5048B_Init(&encoderSensors, &hi2c1);
+	AS5048B_AddDevice(&encoderSensors, 0, 0X40);
+	AS5048B_AddDevice(&encoderSensors, 1, 0X41);
+	//find_dev_id_address(&encoderSensors);
+	AS5048B_CheckDiagnostics(&encoderSensors, 0);
 
   /* USER CODE END 2 */
 
@@ -170,13 +181,13 @@ int main(void)
 		timers_isr &= ~0x01;
 
 		// Sample temperatures
-		for (uint8_t sensor = 0; sensor < 4; sensor++) {
+		for (uint8_t sensor = 0; sensor < 3; sensor++) {
 			// Individual max6675 sensor's reading
 			MAX6675_ReadTemperature(&tempSensors, sensor);
 			//HAL_Delay(1); // HAL_Delay(250); // Waits for Chip Ready(according to Datasheet, the max time for conversion is 220ms)
 		}
 		// Take each measurements and compute chamber's temperature
-		for (uint8_t sensor = 0; sensor < 4; sensor++) {
+		for (uint8_t sensor = 0; sensor < 3; sensor++) {
 			MAX6675_GetTemperature(&tempSensors, sensor, tempReadings + sensor);
 		}
 		// Update PIDs
@@ -188,6 +199,8 @@ int main(void)
 	// HEATERS
 
 	// MOTORS
+	angleReadings[0] = AS5048B_GetAngleDegrees(&encoderSensors, 0);
+	// angleReadings[1] = AS5048B_GetAngleDegrees(&encoderSensors, 1);
 
   }
   /* USER CODE END 3 */
@@ -255,7 +268,7 @@ static void MX_I2C1_Init(void)
 
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
-  hi2c1.Init.ClockSpeed = 300000;
+  hi2c1.Init.ClockSpeed = 100000;
   hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
   hi2c1.Init.OwnAddress1 = 128;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
