@@ -1,155 +1,221 @@
 /****************************************************************************************
- * File: PID.c
- * Description: Implementation of a PID controller for embedded systems, used
- *              in regulating temperature systems or physical variables.
- *              This file contains the functions that manage PID calculations,
- *              with support for dynamic gain adjustments and controller
- *              output limitation.
+ * @file PID.c
+ * @brief Implementation of a PID controller for embedded systems, used
+ *        in regulating temperature systems or physical variables.
+ *        This file contains the functions that manage PID calculations,
+ *        with support for dynamic gain adjustments and controller
+ *        output limitation.
  *
- * Author: Adrian Silva Palafox
- * Creation date: November 2024
+ * @attention This code is open source under the license MIT.
+ *            It can be modified and distributed for educational or commercial purposes.
  *
- * License: This code is open source under the license [Your License Here].
- *          It can be modified and distributed for educational or commercial purposes.
- *
- * Note: It is assumed that the necessary libraries such as "pid.h" and other
+ * @note It is assumed that the necessary libraries such as "pid.h" and other
  *       dependencies are already correctly included and configured in the
  *       development environment.
  ***************************************************************************************/
 
-// Include the header file for the PID implementation
 #include "pid.h"
 
-// Function to initialize the PID controller
-void PID_Init(PIDController* pid, float kp, float ki, float kd,
+/**
+ * @brief Initializes the PID controller with the specified parameters.
+ *
+ * @param pid Pointer to the PIDController structure to initialize.
+ * @param kp Proportional gain.
+ * @param ki Integral gain.
+ * @param kd Derivative gain.
+ * @param tau Low-pass filter time constant for the derivative term.
+ * @param limMin Minimum output limit.
+ * @param limMax Maximum output limit.
+ * @param limMinInt Minimum integrator limit (anti-windup).
+ * @param limMaxInt Maximum integrator limit (anti-windup).
+ * @param t Sampling time (time interval between updates).
+ */
+void PID_Init(PIDController *pid, float kp, float ki, float kd,
               float tau,
               float limMin, float limMax,
               float limMinInt, float limMaxInt,
               float t)
 {
-    // Initialize PID gains (proportional, integral, derivative)
     pid->Kp = kp;
     pid->Ki = ki;
     pid->Kd = kd;
-
-    // Low-pass filter time constant (for the derivative)
     pid->tau = tau;
-
-    // Controller output limits
     pid->limMin = limMin;
     pid->limMax = limMax;
-
-    // Integrator limits (wind-up prevention)
     pid->limMinInt = limMinInt;
     pid->limMaxInt = limMaxInt;
-
-    // Sampling time (time interval between updates)
     pid->T = t;
-
-    // Initialize integrator (accumulates error)
     pid->integrator = 0.0f;
-
-    // Initialize previous error (for derivative calculation)
     pid->prevError = 0.0f;
-
-    // Initialize differentiator (for derivative term)
     pid->differentiator = 0.0f;
-
-    // Initialize previous measurement (for derivative calculation)
     pid->prevMeasurement = 0.0f;
-
-    // Initialize controller output
     pid->out = 0.0f;
 }
 
-// Function to reset the PID controller
-void PID_Reset(PIDController* pid)
+/**
+ * @brief Resets the PID controller's internal state.
+ *
+ * @param pid Pointer to the PIDController structure to reset.
+ */
+void PID_Reset(PIDController *pid)
 {
-    pid->integrator = 0.0f;      // Reset integrator
-    pid->prevError = 0.0f;       // Reset previous error
-    pid->differentiator = 0.0f;  // Reset differentiator
-    pid->prevMeasurement = 0.0f; // Reset previous measurement
-    pid->out = 0.0f;             // Reset output
+    pid->integrator = 0.0f;
+    pid->prevError = 0.0f;
+    pid->differentiator = 0.0f;
+    pid->prevMeasurement = 0.0f;
+    pid->out = 0.0f;
 }
 
-// Function that updates the PID controller each time it is called
-float PID_Update(PIDController* pid, float setpoint, float measurement)
+/**
+ * @brief Updates the PID controller and calculates the control output.
+ *
+ * @param pid Pointer to the PIDController structure.
+ * @param setpoint Desired target value.
+ * @param measurement Current measured value.
+ * @return Control output to adjust the system.
+ */
+float PID_Update(PIDController *pid, float setpoint, float measurement)
 {
-    // Calculate error (difference between setpoint and measurement)
+    // Calculate the error between the setpoint and the current measurement
     float error = setpoint - measurement;
-
-    // Calculate proportional term (Kp * error)
+    // Proportional term
     float proportional = pid->Kp * error;
 
-    // Calculate integral term (integration of error)
-    pid->integrator += 0.5f * pid->Ki * pid->T * (error + pid->prevError); // Trapezoidal integration method (average sum of errors)
+    pid->integrator += 0.5f * pid->Ki * pid->T * (error + pid->prevError);
 
     // Anti-windup: Limit the integrator value to prevent excessive error accumulation
     if (pid->integrator > pid->limMaxInt)
     {
-        pid->integrator = pid->limMaxInt; // Limit integrator to maximum allowed value
+        pid->integrator = pid->limMaxInt;
     }
     else if (pid->integrator < pid->limMinInt)
     {
-        pid->integrator = pid->limMinInt; // Limit integrator to minimum allowed value
+        pid->integrator = pid->limMinInt;
     }
 
-    // Calculate derivative term (with low-pass filter to avoid noise)
+    // Derivative term with low-pass filter
+    // The derivative term is calculated using the difference between the current and previous measurement
+    // and is filtered using a first-order low-pass filter to reduce noise
     pid->differentiator = -(2.0f * pid->Kd * (measurement - pid->prevMeasurement) +
-                         (2.0f * pid->tau - pid->T) * pid->differentiator) /
-                         (2.0f * pid->tau + pid->T);
+                            (2.0f * pid->tau - pid->T) * pid->differentiator) /
+                          (2.0f * pid->tau + pid->T);
 
-    // Calculate total controller output (Sum of proportional, integral, and derivative)
     pid->out = proportional + pid->integrator + pid->differentiator;
 
-    // Apply limits to the output (controller output must be within defined limits)
+    // Limit the output to the specified limits
     if (pid->out > pid->limMax)
     {
-        pid->out = pid->limMax; // Limit output to maximum
+        pid->out = pid->limMax;
     }
     else if (pid->out < pid->limMin)
     {
-        pid->out = pid->limMin; // Limit output to minimum
+        pid->out = pid->limMin;
     }
 
-    // Update controller memory (errors and previous measurements for the next cycle)
+    // Store the current error and measurement for the next iteration
     pid->prevError = error;
+    // Store the current measurement for the next derivative calculation
     pid->prevMeasurement = measurement;
 
-    // Return controller output (how much the controlled variable should be adjusted)
     return pid->out;
 }
 
-// Function to update Kp, Ki, and Kd gains at runtime
-void PID_UpdateGains(PIDController* pid, float kp, float ki, float kd)
+/**
+ * @brief Updates multiple PID controllers in a cascaded manner.
+ *
+ * This function allows updating an array of PID controllers, where the output of one
+ * controller can be used as the setpoint for the next one in the array.
+ *
+ * @param pid_array Pointer to an array of PIDController structures.
+ * @param pid_array_size Size of the PID controller array.
+ * @param controllers_setpoints Pointer to an array of setpoints for each PID controller.
+ * @param sensors_feedback Pointer to an array of sensor feedback values.
+ * @param output_array Pointer to an array to store the output values of each PID controller.
+ * @param coupling_factor Coupling factor to adjust the influence of one controller's output
+ *                        on the next controller's setpoint.
+ */
+void cascaded_PID_Update(PIDController *pid_array, uint8_t pid_array_size,
+                         float *controllers_setpoints,
+                         float *sensors_feedback,
+                         float *output_array,
+                         float coupling_factor)
 {
-    pid->Kp = kp; // Update proportional gain
-    pid->Ki = ki; // Update integral gain
-    pid->Kd = kd; // Update derivative gain
+    for (uint8_t i = 0; i < pid_array_size; i++)
+    {
+        // Update the PID controller with the current setpoint and sensor feedback
+        output_array[i] = PID_Update(&pid_array[i], controllers_setpoints[i], sensors_feedback[i]);
+
+        // Set the next controller's setpoint to the current output
+        if (i < pid_array_size - 1)
+        {
+            controllers_setpoints[i + 1] = controllers_setpoints[i + 1] + output_array[i] * coupling_factor;
+        }
+    }
 }
 
-// Functions to get Kp, Ki, and Kd gains individually
-float PID_GetKp(const PIDController* pid)
+/***************************************************************
+ * USERS' FUNCTIONS TO GET AND SET PID CONTROLLER'S PARAMETERS
+ ****************************************************************/
+
+/**
+ * @brief Updates the PID controller's gains at runtime.
+ *
+ * @param pid Pointer to the PIDController structure.
+ * @param kp New proportional gain.
+ * @param ki New integral gain.
+ * @param kd New derivative gain.
+ */
+void PID_UpdateGains(PIDController *pid, float kp, float ki, float kd)
 {
-    return pid->Kp; // Return proportional gain
+    pid->Kp = kp;
+    pid->Ki = ki;
+    pid->Kd = kd;
 }
 
-float PID_GetKi(const PIDController* pid)
+/**
+ * @brief Retrieves the proportional gain (Kp) of the PID controller.
+ *
+ * @param pid Pointer to the PIDController structure.
+ * @return Proportional gain (Kp).
+ */
+float PID_GetKp(const PIDController *pid)
 {
-    return pid->Ki; // Return integral gain
+    return pid->Kp;
 }
 
-float PID_GetKd(const PIDController* pid)
+/**
+ * @brief Retrieves the integral gain (Ki) of the PID controller.
+ *
+ * @param pid Pointer to the PIDController structure.
+ * @return Integral gain (Ki).
+ */
+float PID_GetKi(const PIDController *pid)
 {
-    return pid->Kd; // Return derivative gain
+    return pid->Ki;
 }
 
-// Function to get all gains together as a struct (useful for sending via serial or other methods)
-PIDGains PID_GetGains(const PIDController* pid)
+/**
+ * @brief Retrieves the derivative gain (Kd) of the PID controller.
+ *
+ * @param pid Pointer to the PIDController structure.
+ * @return Derivative gain (Kd).
+ */
+float PID_GetKd(const PIDController *pid)
+{
+    return pid->Kd;
+}
+
+/**
+ * @brief Retrieves all PID gains as a PIDGains structure.
+ *
+ * @param pid Pointer to the PIDController structure.
+ * @return PIDGains structure containing Kp, Ki, and Kd.
+ */
+PIDGains PID_GetGains(const PIDController *pid)
 {
     PIDGains gains;
     gains.Kp = pid->Kp;
     gains.Ki = pid->Ki;
     gains.Kd = pid->Kd;
-    return gains; // Return all three gains as a struct
+    return gains;
 }
